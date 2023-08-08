@@ -17,12 +17,12 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 from torch.optim import AdamW
-from visdom import Visdom
+#from visdom import Visdom
 import numpy as np
-viz = Visdom(port=8850)
-loss_window = viz.line( Y=th.zeros((1)).cpu(), X=th.zeros((1)).cpu(), opts=dict(xlabel='epoch', ylabel='Loss', title='classification loss'))
-val_window = viz.line( Y=th.zeros((1)).cpu(), X=th.zeros((1)).cpu(), opts=dict(xlabel='epoch', ylabel='Loss', title='validation loss'))
-acc_window= viz.line( Y=th.zeros((1)).cpu(), X=th.zeros((1)).cpu(), opts=dict(xlabel='epoch', ylabel='acc', title='accuracy'))
+#viz = Visdom(port=8850)
+#loss_window = viz.line( Y=th.zeros((1)).cpu(), X=th.zeros((1)).cpu(), opts=dict(xlabel='epoch', ylabel='Loss', title='classification loss'))
+#val_window = viz.line( Y=th.zeros((1)).cpu(), X=th.zeros((1)).cpu(), opts=dict(xlabel='epoch', ylabel='Loss', title='validation loss'))
+#acc_window= viz.line( Y=th.zeros((1)).cpu(), X=th.zeros((1)).cpu(), opts=dict(xlabel='epoch', ylabel='acc', title='accuracy'))
 
 from guided_diffusion import dist_util, logger
 from guided_diffusion.fp16_util import MixedPrecisionTrainer
@@ -43,7 +43,7 @@ def main():
     args = create_argparser().parse_args()
 
     dist_util.setup_dist()
-    logger.configure()
+    logger.configure(dir = args.out_dir)
 
     logger.log("creating model and diffusion...")
     model, diffusion = create_classifier_and_diffusion(
@@ -86,16 +86,14 @@ def main():
             shuffle=True)
         data = iter(datal)
 
-    elif args.dataset == 'chexpert':
+    elif args.dataset == 'MRI':
         data = load_data(
             data_dir=args.data_dir,
             batch_size=args.batch_size,
             image_size=args.image_size,
             class_cond=True,
         )
-        print('dataset is chexpert')
-
-
+        print('dataset is MRI')
 
     logger.log(f"creating optimizer...")
     opt = AdamW(mp_trainer.master_params, lr=args.lr, weight_decay=args.weight_decay)
@@ -116,10 +114,10 @@ def main():
             batch, extra, labels,_ , _ = next(data_loader)
             print('IS BRATS')
 
-        elif  args.dataset=='chexpert':
+        elif  args.dataset == 'MRI':
             batch, extra = next(data_loader)
             labels = extra["y"].to(dist_util.dev())
-            print('IS CHEXPERT')
+            print('IS MRI')
 
         print('labels', labels)
         batch = batch.to(dist_util.dev())
@@ -150,13 +148,7 @@ def main():
             log_loss_dict(diffusion, sub_t, losses)
 
             loss = loss.mean()
-            if prefix=="train":
-                viz.line(X=th.ones((1, 1)).cpu() * step, Y=th.Tensor([loss]).unsqueeze(0).cpu(),
-                     win=loss_window, name='loss_cls',
-                     update='append')
-
-            else:
-
+            if prefix != "train":
                 output_idx = logits[0].argmax()
                 print('outputidx', output_idx)
                 output_max = logits[0, output_idx]
@@ -164,9 +156,9 @@ def main():
                 output_max.backward()
                 saliency, _ = th.max(sub_batch.grad.data.abs(), dim=1)
                 print('saliency', saliency.shape)
-                viz.heatmap(visualize(saliency[0, ...]))
-                viz.image(visualize(sub_batch[0, 0,...]))
-                viz.image(visualize(sub_batch[0, 1, ...]))
+                #viz.heatmap(visualize(saliency[0, ...]))
+                #viz.image(visualize(sub_batch[0, 0,...]))
+                #viz.image(visualize(sub_batch[0, 1, ...]))
                 th.cuda.empty_cache()
 
 
@@ -259,10 +251,11 @@ def create_argparser():
         microbatch=-1,
         schedule_sampler="uniform",
         resume_checkpoint="",
-        log_interval=1,
+        log_interval=100,
         eval_interval=1000,
         save_interval=5000,
-        dataset='brats'
+        dataset='brats',
+        out_dir='./results/'
     )
     defaults.update(classifier_and_diffusion_defaults())
     parser = argparse.ArgumentParser()

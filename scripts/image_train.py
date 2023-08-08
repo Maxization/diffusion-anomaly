@@ -17,14 +17,14 @@ from guided_diffusion.script_util import (
     add_dict_to_argparser,
 )
 from guided_diffusion.train_util import TrainLoop
-from visdom import Visdom
-viz = Visdom(port=8850)
+#from visdom import Visdom
+#viz = Visdom(port=8850)
 
 def main():
     args = create_argparser().parse_args()
 
     dist_util.setup_dist()
-    logger.configure()
+    logger.configure(dir = args.out_dir)
 
     logger.log("creating model and diffusion...")
     model, diffusion = create_model_and_diffusion(
@@ -43,14 +43,14 @@ def main():
             shuffle=True)
        # data = iter(datal)
 
-    elif args.dataset == 'chexpert':
+    elif args.dataset == 'MRI':
         datal = load_data(
             data_dir=args.data_dir,
-            batch_size=1,
+            batch_size=args.batch_size,
             image_size=args.image_size,
             class_cond=True,
         )
-        print('dataset is chexpert')
+        print('dataset is MRI')
 
     logger.log("training...")
     TrainLoop(
@@ -89,6 +89,7 @@ def create_argparser():
         use_fp16=False,
         fp16_scale_growth=1e-3,
         dataset='brats',
+        out_dir='./results/'
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()

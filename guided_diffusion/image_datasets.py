@@ -8,8 +8,8 @@ import torch as th
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from .train_util import visualize
-from visdom import Visdom
-viz = Visdom(port=8850)
+#from visdom import Visdom
+#viz = Visdom(port=8850)
 from scipy import ndimage
 
 
@@ -44,16 +44,14 @@ def load_data(
     if not data_dir:
         raise ValueError("unspecified data directory")
     all_files = _list_image_files_recursively(data_dir)
-
+    all_files = list(map(lambda x: x.replace('\\', '/'), all_files))
     classes = None
 
     if class_cond:
         # Assume classes are the first part of the filename,
         # before an underscore.
-
-        class_names =[path.split("/")[3] for path in all_files] #9 or 3
+        class_names =[path.split("/")[-2] for path in all_files] #9 or 3
         print('classnames', class_names)
-
 
         sorted_classes = {x: i for i, x in enumerate(sorted(set(class_names)))}
         classes = [sorted_classes[x] for x in class_names]
@@ -85,7 +83,7 @@ def _list_image_files_recursively(data_dir):
     for entry in sorted(bf.listdir(data_dir)):
         full_path = bf.join(data_dir, entry)
         ext = entry.split(".")[-1]
-        if "." in entry and ext.lower() in ["jpg", "jpeg", "png", "gif", "npy"]:
+        if "." in entry and ext.lower() in ["jpg", "jpeg", "png", "gif", "npy", "tif"]:
             results.append(full_path)
         elif bf.isdir(full_path):
             results.extend(_list_image_files_recursively(full_path))
@@ -102,7 +100,7 @@ class ImageDataset(Dataset):
         num_shards=1,
         random_crop=False,
         random_flip=False,
-        exts=['jpg', 'jpeg', 'png', 'npy']
+        exts=['jpg', 'jpeg', 'png', 'npy', 'tif']
     ):
         super().__init__()
         self.resolution = resolution
@@ -119,11 +117,11 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         path = self.local_images[idx]
-        name=str(path).split("/")[-1].split(".")[0]
+        name=str(path).replace('\\', '/').split("/")[-1].split(".")[0]
         print('path', name)
 
-
-        numpy_img = np.load(path)
+        img = Image.open(path)
+        numpy_img = np.array(img)
         arr = visualize(numpy_img).astype(np.float32)
 
         out_dict = {}

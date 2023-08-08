@@ -12,8 +12,8 @@ from . import dist_util, logger
 from .fp16_util import MixedPrecisionTrainer
 from .nn import update_ema
 from .resample import LossAwareSampler, UniformSampler
-from visdom import Visdom
-viz = Visdom(port=8850)
+#from visdom import Visdom
+#viz = Visdom(port=8850)
 
 INITIAL_LOG_LOSS_SCALE = 20.0
 
@@ -171,7 +171,7 @@ class TrainLoop:
                 except:
                     self.iterdatal = iter(self.datal)
                     batch, cond, label, _, _ = next(self.iterdatal)
-            elif self.dataset=='chexpert':
+            elif self.dataset=='MRI':
                 batch, cond = next(self.datal)
                 cond.pop("path", None)
 
@@ -266,9 +266,9 @@ class TrainLoop:
             if dist.get_rank() == 0:
                 logger.log(f"saving model {rate}...")
                 if not rate:
-                    filename = f"brats2update{(self.step+self.resume_step):06d}.pt"
+                    filename = f"mri2update{(self.step+self.resume_step):06d}.pt"
                 else:
-                    filename = f"emabrats2update_{rate}_{(self.step+self.resume_step):06d}.pt"
+                    filename = f"emamri2update_{rate}_{(self.step+self.resume_step):06d}.pt"
                 print('filename', filename)
                 with bf.BlobFile(bf.join(get_blob_logdir(), filename), "wb") as f:
                     th.save(state_dict, f)
@@ -279,7 +279,7 @@ class TrainLoop:
 
         if dist.get_rank() == 0:
             with bf.BlobFile(
-                bf.join(get_blob_logdir(), f"optbrats2update{(self.step+self.resume_step):06d}.pt"),
+                bf.join(get_blob_logdir(), f"optmri2update{(self.step+self.resume_step):06d}.pt"),
                 "wb",
             ) as f:
                 th.save(self.opt.state_dict(), f)
