@@ -5,8 +5,8 @@ numpy array. This can be used to produce samples for FID evaluation.
 import matplotlib.pyplot as plt
 import argparse
 import os
-#from visdom import Visdom
-#viz = Visdom(port=8850)
+from visdom import Visdom
+viz = Visdom(port=8850)
 import sys
 sys.path.append("..")
 sys.path.append(".")
@@ -14,6 +14,7 @@ from guided_diffusion.bratsloader import BRATSDataset
 import torch.nn.functional as F
 import numpy as np
 import torch as th
+from PIL import Image
 import torch.distributed as dist
 from guided_diffusion.image_datasets import load_data
 from guided_diffusion import dist_util, logger
@@ -121,9 +122,10 @@ def main():
           #viz.image(visualize(img[0][0, 3, ...]), opts=dict(caption="img input 3"))
           #viz.image(visualize(img[3][0, ...]), opts=dict(caption="ground truth"))
         else:
-          #viz.image(visualize(img[0][0, ...]), opts=dict(caption="img input"))
+          img_input = Image.fromarray(img[0][0, ...])
+          img_input.save(args.out_dir + "input_" + str(number) + ".png")
           print('img1', img[1])
-          number=img[1]["path"]
+          number=img[1]["path"][0]
           print('number', number)
 
         if args.class_cond:
@@ -164,10 +166,15 @@ def main():
           #viz.heatmap(visualize(difftot), opts=dict(caption="difftot"))
           
         elif args.dataset == 'MRI':
-          #viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(name)))
+          viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
+          img_output = Image.fromarray(visualize(sample[0, ...]))
+          img_output.save(args.out_dir + "output_" + str(number) + ".png")
+
           diff=abs(visualize(org[0, 0,...])-visualize(sample[0,0, ...]))
           diff=np.array(diff.cpu())
-          #viz.heatmap(np.flipud(diff), opts=dict(caption="diff"))
+
+          image_diff =  Image.fromarray(diff)
+          image_diff.save(args.out_dir + "diff_" + str(number) + ".png")
 
 
         gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
