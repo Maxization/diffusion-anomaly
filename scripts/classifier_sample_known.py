@@ -122,6 +122,7 @@ def main():
           #viz.image(visualize(img[0][0, 3, ...]), opts=dict(caption="img input 3"))
           #viz.image(visualize(img[3][0, ...]), opts=dict(caption="ground truth"))
         else:
+          number = img[1]["path"][0]
           img_array = np.array(img[0][0, ...])
           img_array = np.transpose(img_array, [1, 2, 0])
           img_array = (img_array * 255).astype(np.uint8)
@@ -129,7 +130,6 @@ def main():
           img_input = Image.fromarray(img_array)
           img_input.save(args.out_dir + "input_" + str(number) + ".png")
           print('img1', img[1])
-          number=img[1]["path"][0]
           print('number', number)
 
         if args.class_cond:
