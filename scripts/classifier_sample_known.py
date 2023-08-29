@@ -171,7 +171,7 @@ def main():
           
         elif args.dataset == 'MRI':
           #viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
-          output_array = np.array(visualize(sample[0, ...]))
+          output_array = np.array(visualize(sample[0, ...]).cpu())
           print(output_array)
           output_array = np.transpose(output_array, [1, 2, 0])
           output_array = (output_array * 255).astype(np.uint8)
