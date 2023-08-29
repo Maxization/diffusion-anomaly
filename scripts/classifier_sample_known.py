@@ -123,6 +123,7 @@ def main():
           #viz.image(visualize(img[3][0, ...]), opts=dict(caption="ground truth"))
         else:
           img_array = np.array(img[0][0, ...])
+          img_array = np.transpose(img_array, [1, 2, 0])
           print(f'Image shape: {img_array.shape}')
           img_input = Image.fromarray(img_array)
           img_input.save(args.out_dir + "input_" + str(number) + ".png")
@@ -169,7 +170,9 @@ def main():
           
         elif args.dataset == 'MRI':
           viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
-          img_output = Image.fromarray(visualize(sample[0, ...]))
+          output_array = visualize(sample[0, ...])
+          print(f'Image shape: {output_array.shape}')
+          img_output = Image.fromarray(output_array)
           img_output.save(args.out_dir + "output_" + str(number) + ".png")
 
           diff=abs(visualize(org[0, 0,...])-visualize(sample[0,0, ...]))
