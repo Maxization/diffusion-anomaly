@@ -170,14 +170,19 @@ def main():
           #viz.heatmap(visualize(difftot), opts=dict(caption="difftot"))
           
         elif args.dataset == 'MRI':
-          viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
+          #viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
           output_array = visualize(sample[0, ...])
+          output_array = np.transpose(output_array, [1, 2, 0])
+          output_array = (output_array * 255).astype(np.uint8)
           print(f'Image shape: {output_array.shape}')
           img_output = Image.fromarray(output_array)
           img_output.save(args.out_dir + "output_" + str(number) + ".png")
 
           diff=abs(visualize(org[0, 0,...])-visualize(sample[0,0, ...]))
           diff=np.array(diff.cpu())
+
+          print(f'diff: {diff.shape}')
+          print(diff)
 
           image_diff =  Image.fromarray(diff)
           image_diff.save(args.out_dir + "diff_" + str(number) + ".png")
