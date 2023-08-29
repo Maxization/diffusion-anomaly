@@ -124,6 +124,7 @@ def main():
         else:
           img_array = np.array(img[0][0, ...])
           img_array = np.transpose(img_array, [1, 2, 0])
+          img_array = (img_array * 255).astype(np.uint8)
           print(f'Image shape: {img_array.shape}')
           img_input = Image.fromarray(img_array)
           img_input.save(args.out_dir + "input_" + str(number) + ".png")
