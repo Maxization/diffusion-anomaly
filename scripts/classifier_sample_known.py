@@ -188,7 +188,7 @@ def main():
           print(f'diff: {diff.shape}')
           print(diff)
 
-          image_diff =  Image.fromarray(diff)
+          image_diff =  Image.fromarray(diff).convert('RGB')
           image_diff.save(args.out_dir + "diff_" + str(number) + ".png")
 
 
