@@ -179,7 +179,10 @@ def main():
           img_output = Image.fromarray(output_array)
           img_output.save(args.out_dir + "output_" + str(number) + ".png")
 
-          diff=abs(visualize(org[0, 0,...])-visualize(sample[0,0, ...]))
+
+          print(f'Org shape: {np.array(org).shape}')
+          print(f'Sample shape: {np.array(sample).shape}')
+          diff=abs(visualize(org[0, ...])-visualize(sample[0, ...]))
           diff=np.array(diff.cpu())
 
           print(f'diff: {diff.shape}')
