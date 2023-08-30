@@ -170,7 +170,7 @@ def main():
           #viz.heatmap(visualize(difftot), opts=dict(caption="difftot"))
           
         elif args.dataset == 'MRI':
-          #viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
+          # viz.image(visualize(sample[0, ...]), opts=dict(caption="sampled output"+str(number)))
           output_array = np.array(visualize(sample[0, ...]).cpu())
           print(output_array)
           output_array = np.transpose(output_array, [1, 2, 0])
@@ -179,16 +179,21 @@ def main():
           img_output = Image.fromarray(output_array)
           img_output.save(args.out_dir + "output_" + str(number) + ".png")
 
+          org_array = np.array(org.cpu())
+          sample_array = np.array(sample.cpu())
+          print(f'Org shape: {org_array.shape}')
+          print(f'Sample shape: {sample_array.shape}')
+          diff = abs(visualize(org[0, 0, ...]) - visualize(sample[0, 0, ...]))
+          diff = np.array(diff.cpu())
 
-          print(f'Org shape: {np.array(org).shape}')
-          print(f'Sample shape: {np.array(sample).shape}')
-          diff=abs(visualize(org[0, ...])-visualize(sample[0, ...]))
-          diff=np.array(diff.cpu())
+          # diff = np.transpose(diff, [1, 2, 0])
+          diff = (diff * 255).astype(np.uint8)
+          diff = np.flipud(diff)
 
           print(f'diff: {diff.shape}')
           print(diff)
 
-          image_diff =  Image.fromarray(diff).convert('RGB')
+          image_diff = Image.fromarray(diff).convert('RGB')
           image_diff.save(args.out_dir + "diff_" + str(number) + ".png")
 
 
