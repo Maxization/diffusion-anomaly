@@ -120,7 +120,7 @@ class ImageDataset(Dataset):
         name=str(path).replace('\\', '/').split("/")[-1].split(".")[0]
         print('path', name)
 
-        img = Image.open(path)
+        img = Image.open(path).convert('RGB')
         numpy_img = np.array(img)
         arr = visualize(numpy_img).astype(np.float32)
 
