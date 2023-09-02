@@ -10,6 +10,7 @@ viz = Visdom(port=8850)
 import sys
 sys.path.append("..")
 sys.path.append(".")
+import cv2
 from guided_diffusion.bratsloader import BRATSDataset
 import torch.nn.functional as F
 import numpy as np
@@ -188,13 +189,15 @@ def main():
 
           # diff = np.transpose(diff, [1, 2, 0])
           diff = (diff * 255).astype(np.uint8)
-          diff = np.flipud(diff)
 
           print(f'diff: {diff.shape}')
           print(diff)
 
-          image_diff = Image.fromarray(diff).convert('RGB')
-          image_diff.save(args.out_dir + "diff_" + str(number) + ".png")
+          heatmap = cv2.applyColorMap(diff, cv2.COLORMAP_HOT)
+          cv2.imwrite(args.out_dir + "diff_" + str(number) + ".png", heatmap)
+
+          #image_diff = Image.fromarray(diff).convert('RGB')
+          #image_diff.save(args.out_dir + "diff_" + str(number) + ".png")
 
 
         gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
